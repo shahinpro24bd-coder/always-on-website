@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -121,21 +121,26 @@ function LeadsPage() {
     },
   });
 
-  // Already Collected — shob account mile je link gulo already newa hoyeche
-  const { data: collected = [], isLoading: collectedLoading } = useQuery({
-    queryKey: ["collected-leads"],
-    retry: 4,
-    retryDelay: (n) => Math.min(1000 * 2 ** n, 8000),
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["admin-role"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return false;
+      const result = await supabase.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
+      if (result.error) throw result.error;
+      return result.data;
+    },
+  });
+  const { data: collected = [], isLoading: collectedLoading, isError: previousError, refetch: refetchPrevious } = useQuery({
+    queryKey: ["previous-version-leads"],
+    enabled: view === "collected",
     queryFn: async (): Promise<Collected[]> => {
-      const PAGE = 1000;
       const all: Collected[] = [];
-      for (let start = 0; ; start += PAGE) {
-        const { data, error } = await supabase
-          .rpc("collected_leads")
-          .range(start, start + PAGE - 1);
+      for (let start = 0; ; start += 1000) {
+        const { data, error } = await supabase.rpc("previous_version_leads").range(start, start + 999);
         if (error) throw error;
-        all.push(...((data ?? []) as Collected[]));
-        if (!data || data.length < PAGE) break;
+        all.push(...(data ?? []).map(row => ({ ...row, canonical_link: row.id, mine: false })));
+        if (!data || data.length < 1000) break;
       }
       return all;
     },
@@ -144,12 +149,6 @@ function LeadsPage() {
   // Link normalize: shesher slash / space remove — jeno same link onno bhabe dileo duplicate dhore
   const normalizeLink = (url: string) => url.trim().replace(/\/+$/, "");
   const linkKey = (url: string) => normalizeLink(url).toLowerCase();
-
-  const collectedKeys = useMemo(
-    () => new Set(collected.map((c) => linkKey(c.facebook_link))),
-    [collected],
-  );
-
 
   const addLead = useMutation({
     mutationFn: async () => {
@@ -163,8 +162,7 @@ function LeadsPage() {
       const linkLower = linkKey(trimmedLink);
       const duplicateLink = leads.find((l) => linkKey(l.facebook_link) === linkLower);
       if (duplicateLink) throw new Error("Ei Facebook link already add kora ache.");
-      if (collectedKeys.has(linkLower))
-        throw new Error("Ei link already collected — onno account e newa hoyeche.");
+
 
 
       if (trimmedPhone) {
@@ -194,7 +192,7 @@ function LeadsPage() {
       setPhone("");
       toast.success("Lead add hoyeche");
       qc.invalidateQueries({ queryKey: ["leads"] });
-      qc.invalidateQueries({ queryKey: ["collected-leads"] });
+      qc.invalidateQueries({ queryKey: ["previous-version-leads"] });
 
     },
     onError: (e: Error) => toast.error(e.message),
@@ -221,7 +219,7 @@ function LeadsPage() {
         if (!match) continue;
         const url = normalizeLink(match[0].replace(/[),.;]+$/, "")).slice(0, 500);
         const key = linkKey(url);
-        if (seen.has(key) || existingLinks.has(key) || collectedKeys.has(key)) {
+        if (seen.has(key) || existingLinks.has(key)) {
           skipped++;
           continue;
         }
@@ -258,7 +256,7 @@ function LeadsPage() {
         skipped > 0 ? `${added} ta lead add hoyeche (${skipped} ta duplicate skip)` : `${added} ta lead add hoyeche`,
       );
       qc.invalidateQueries({ queryKey: ["leads"] });
-      qc.invalidateQueries({ queryKey: ["collected-leads"] });
+      qc.invalidateQueries({ queryKey: ["previous-version-leads"] });
 
     },
     onError: (e: Error) => toast.error(e.message),
@@ -376,8 +374,10 @@ function LeadsPage() {
   const allSelected = visibleIds.length > 0 && selectedVisible.length === visibleIds.length;
 
   const signOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth" });
+    navigate({ to: "/auth", replace: true });
   };
 
   return (
@@ -385,9 +385,12 @@ function LeadsPage() {
       <header className="workspace-header px-5 py-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <TeamBrand />
+          <div className="flex flex-wrap items-center gap-2">
+          {isAdmin && <Button variant="outline" size="sm" asChild><Link to="/admin"><LayoutDashboard className="size-4" /> Admin</Link></Button>}
           <Button variant="ghost" size="sm" onClick={signOut}>
             <LogOut className="mr-2 size-4" /> Logout
           </Button>
+          </div>
         </div>
       </header>
 
@@ -397,7 +400,7 @@ function LeadsPage() {
             <p className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground"><LayoutDashboard className="size-3.5" /> WORKSPACE / LEADS</p>
             <h1 className="text-3xl font-semibold">Lead workspace</h1>
           </div>
-          <Button variant="outline" size="sm" onClick={() => { refetchLeads(); qc.invalidateQueries({ queryKey: ["collected-leads"] }); }}>
+          <Button variant="outline" size="sm" onClick={() => { refetchLeads(); qc.invalidateQueries({ queryKey: ["previous-version-leads"] }); }}>
             <RotateCcw className="mr-2 size-4" /> Refresh
           </Button>
         </div>
@@ -406,7 +409,7 @@ function LeadsPage() {
             { name: "Active leads", count: leads.filter(l => !l.archived && !l.deleted_at).length, icon: Users },
             { name: "Verified", count: leads.filter(l => l.verified && !l.deleted_at).length, icon: ShieldCheck },
             { name: "Archived", count: leads.filter(l => l.archived && !l.deleted_at).length, icon: Archive },
-            { name: "Collected links", count: collected.length, icon: Globe },
+            { name: "Total leads", count: leads.length, icon: Globe },
           ].map(item => <div key={item.name} className="px-1"><div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground"><item.icon className="size-4" />{item.name}</div><div className="font-display text-2xl font-semibold tabular-nums">{isLoading || collectedLoading ? "—" : item.count.toLocaleString()}</div></div>)}
         </div>
         <Card className="workspace-panel">
@@ -497,7 +500,7 @@ function LeadsPage() {
                     ? "Archive"
                     : view === "trash"
                       ? "Trash"
-                      : "Already Collected"}{" "}
+                      : "Previous Version Leads"}{" "}
                 <span className="text-muted-foreground">
                   ({view === "collected" ? filteredCollected.length : filtered.length})
                 </span>
@@ -529,7 +532,7 @@ function LeadsPage() {
                   variant={view === "collected" ? "default" : "outline"}
                   onClick={() => setView("collected")}
                 >
-                  <Globe className="mr-2 size-4" /> Already Collected
+                  <Globe className="mr-2 size-4" /> Previous Version Leads
                 </Button>
               </div>
 
@@ -583,11 +586,7 @@ function LeadsPage() {
           <CardContent>
             {view === "collected" ? (
               <>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Ei link gulo shob account mile already collect kora hoyeche — ekta link shudhu
-                  ekjon-i add korte parbe. Ekhane kono phone number ba account info dekhano hoy na.
-                </p>
-                {collectedLoading ? (
+                {previousError ? <div className="py-8"><p>Previous leads load hoyni.</p><Button variant="outline" onClick={() => refetchPrevious()}>Retry</Button></div> : collectedLoading ? (
                   <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
                 ) : filteredCollected.length === 0 ? (
                   <p className="py-8 text-center text-sm text-muted-foreground">
@@ -598,7 +597,7 @@ function LeadsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Facebook link</TableHead>
-                        <TableHead className="w-32">Collected by</TableHead>
+
                         <TableHead className="w-32">Date</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -615,17 +614,6 @@ function LeadsPage() {
                               {c.facebook_link}
                               <ExternalLink className="size-3 shrink-0" />
                             </a>
-                          </TableCell>
-                          <TableCell>
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                                c.mine
-                                  ? "bg-primary/10 text-primary"
-                                  : "bg-muted text-muted-foreground"
-                              }`}
-                            >
-                              {c.mine ? "Ami" : "Onno account"}
-                            </span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {new Date(c.created_at).toLocaleDateString()}
