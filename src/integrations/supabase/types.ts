@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      lead_import_records: {
+        Row: {
+          id: string
+          imported_at: string
+          record: Json
+          source_file: string
+        }
+        Insert: {
+          id: string
+          imported_at?: string
+          record: Json
+          source_file: string
+        }
+        Update: {
+          id?: string
+          imported_at?: string
+          record?: Json
+          source_file?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           archived: boolean
