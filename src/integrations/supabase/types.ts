@@ -14,13 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      leads: {
+        Row: {
+          archived: boolean
+          canonical_link: string
+          created_at: string
+          deleted_at: string | null
+          facebook_link: string
+          id: string
+          phone: string | null
+          serial: number
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          archived?: boolean
+          canonical_link: string
+          created_at?: string
+          deleted_at?: string | null
+          facebook_link: string
+          id?: string
+          phone?: string | null
+          serial: number
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          archived?: boolean
+          canonical_link?: string
+          created_at?: string
+          deleted_at?: string | null
+          facebook_link?: string
+          id?: string
+          phone?: string | null
+          serial?: number
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      canonical_facebook_link: { Args: { input_link: string }; Returns: string }
+      collected_leads: {
+        Args: never
+        Returns: {
+          canonical_link: string
+          created_at: string
+          facebook_link: string
+          mine: boolean
+        }[]
+      }
+      purge_old_trash: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
