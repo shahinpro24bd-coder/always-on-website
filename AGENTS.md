@@ -11,3 +11,4 @@
 
 - Reuse TeamBrand for site identity across public and authenticated screens so branding stays consistent.
 - Use semantic global theme tokens and unframed workspace sections for dashboard presentation; preserve existing lead ownership and operations when restyling.
+- Keep original imported lead records in a private, RLS-locked archive; import into leads without reassigning user IDs so account recovery can preserve ownership.
