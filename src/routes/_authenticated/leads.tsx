@@ -80,35 +80,58 @@ function LeadsPage() {
   const [view, setView] = useState<"active" | "archived" | "trash" | "collected">("active");
   const [selected, setSelected] = useState<string[]>([]);
 
-  const { data: leads = [], isLoading } = useQuery({
+  const {
+    data: leads = [],
+    isLoading,
+    isError: leadsError,
+    refetch: refetchLeads,
+  } = useQuery({
     queryKey: ["leads"],
+    retry: 4,
+    retryDelay: (n) => Math.min(1000 * 2 ** n, 8000),
     queryFn: async (): Promise<Lead[]> => {
       const { data: sessionData } = await supabase.auth.getSession();
       const uid = sessionData.session?.user?.id;
       if (!uid) return [];
 
-      // 30 din er purono trash auto delete (shudhu nijer lead) —
-      // background-e chole, page load er jonno wait kora hoy na.
-      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-      supabase.from("leads").delete().eq("user_id", uid).lt("deleted_at", cutoff);
+      // 30 din er purono trash auto delete — background-e, fail korleo page atkabe na.
+      void supabase.rpc("purge_old_trash").then(() => undefined);
 
-      const { data, error } = await supabase
-        .from("leads")
-        .select("id, serial, phone, facebook_link, verified, archived, deleted_at, created_at")
-        .eq("user_id", uid)
-        .order("serial", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      // 1000 row er limit er jonno page by page sob lead ana hoy.
+      const PAGE = 1000;
+      const all: Lead[] = [];
+      for (let start = 0; ; start += PAGE) {
+        const { data, error } = await supabase
+          .from("leads")
+          .select("id, serial, phone, facebook_link, verified, archived, deleted_at, created_at")
+          .eq("user_id", uid)
+          .order("serial", { ascending: false })
+          .range(start, start + PAGE - 1);
+        if (error) throw error;
+        all.push(...(data ?? []));
+        if (!data || data.length < PAGE) break;
+      }
+      return all;
     },
   });
 
   // Already Collected — shob account mile je link gulo already newa hoyeche
   const { data: collected = [], isLoading: collectedLoading } = useQuery({
     queryKey: ["collected-leads"],
+    retry: 4,
+    retryDelay: (n) => Math.min(1000 * 2 ** n, 8000),
     queryFn: async (): Promise<Collected[]> => {
-      const { data, error } = await supabase.rpc("collected_leads");
-      if (error) throw error;
-      return (data ?? []) as Collected[];
+      const PAGE = 1000;
+      const all: Collected[] = [];
+      for (let start = 0; ; start += PAGE) {
+        const { data, error } = await supabase
+          .rpc("collected_leads")
+          .range(start, start + PAGE - 1);
+        if (error) throw error;
+        all.push(...((data ?? []) as Collected[]));
+        if (!data || data.length < PAGE) break;
+      }
+      return all;
     },
   });
 
