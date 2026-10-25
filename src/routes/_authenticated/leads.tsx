@@ -692,6 +692,13 @@ function LeadsPage() {
 
             {isLoading ? (
               <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
+            ) : leadsError ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                <p>Leads load hoyni — internet check korun.</p>
+                <Button size="sm" variant="outline" className="mt-3" onClick={() => refetchLeads()}>
+                  <RotateCcw className="mr-1 h-4 w-4" /> Abar try korun
+                </Button>
+              </div>
             ) : filtered.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
                 {view === "active"
