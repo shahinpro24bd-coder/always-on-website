@@ -81,26 +81,26 @@
 }
 
 :root {
-  --radius: 0.85rem;
-  --background: oklch(0.985 0.006 250);
-  --foreground: oklch(0.22 0.035 262);
+  --radius: 0.45rem;
+  --background: oklch(0.975 0.003 160);
+  --foreground: oklch(0.24 0.008 160);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.035 262);
+  --card-foreground: oklch(0.24 0.008 160);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.035 262);
-  --primary: oklch(0.55 0.19 255);
+  --primary: oklch(0.46 0.105 166);
   --primary-foreground: oklch(0.99 0.005 250);
-  --secondary: oklch(0.955 0.012 255);
-  --secondary-foreground: oklch(0.3 0.045 262);
-  --muted: oklch(0.955 0.012 255);
-  --muted-foreground: oklch(0.53 0.03 258);
-  --accent: oklch(0.93 0.045 200);
-  --accent-foreground: oklch(0.28 0.05 250);
+  --secondary: oklch(0.94 0.008 160);
+  --secondary-foreground: oklch(0.3 0.02 160);
+  --muted: oklch(0.95 0.004 160);
+  --muted-foreground: oklch(0.51 0.01 160);
+  --accent: oklch(0.93 0.03 166);
+  --accent-foreground: oklch(0.35 0.08 166);
   --destructive: oklch(0.58 0.22 25);
   --destructive-foreground: oklch(0.99 0.005 250);
-  --border: oklch(0.9 0.015 255);
-  --input: oklch(0.9 0.015 255);
-  --ring: oklch(0.55 0.19 255);
+  --border: oklch(0.89 0.006 160);
+  --input: oklch(0.87 0.008 160);
+  --ring: oklch(0.46 0.105 166);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -115,7 +115,7 @@
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
   --gradient-hero: linear-gradient(135deg, oklch(0.55 0.19 255) 0%, oklch(0.62 0.15 215) 100%);
-  --shadow-panel: 0 12px 40px -18px oklch(0.35 0.08 258 / 0.35);
+  --shadow-panel: 0 4px 18px -8px oklch(0.25 0.01 160 / 0.12);
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 }
@@ -169,6 +169,10 @@
 
   h1, h2, h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
 }
+
+.workspace-header { background: var(--card); border-bottom: 1px solid var(--border); }
+.workspace-panel { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.auth-page { background: var(--background); }

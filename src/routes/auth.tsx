@@ -8,17 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TeamBrand } from "@/components/team-brand";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — LeadVault Facebook Lead Manager" },
+      { title: "Sign in — TEAM SHAHIN" },
       {
         name: "description",
-        content: "Sign in to LeadVault to save Facebook lead links and filter them by date.",
+        content: "Sign in to TEAM SHAHIN to access your private lead workspace.",
       },
-      { property: "og:title", content: "Sign in — LeadVault" },
-      { property: "og:description", content: "Access your Facebook leads dashboard." },
+      { property: "og:title", content: "Sign in — TEAM SHAHIN" },
+      { property: "og:description", content: "Access your TEAM SHAHIN lead workspace." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,
@@ -77,11 +81,19 @@ function AuthPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-16">
-      <Card className="w-full max-w-md shadow-[var(--shadow-panel)]">
-        <CardHeader>
-          <CardTitle className="text-2xl">LeadVault</CardTitle>
-          <CardDescription>Facebook lead links save korun, date diye filter korun.</CardDescription>
+    <main className="auth-page min-h-screen px-5 py-8">
+      <header className="mx-auto max-w-7xl"><TeamBrand /></header>
+      <div className="mx-auto flex min-h-[75vh] max-w-md flex-col justify-center py-12">
+        <div className="mb-8">
+          <div className="mb-5 flex size-12 items-center justify-center rounded-md border bg-card text-primary"><LockKeyhole className="size-6" /></div>
+          <p className="mb-2 text-xs font-semibold uppercase text-primary">TEAM SHAHIN / Workspace</p>
+          <h1 className="text-3xl font-semibold">Welcome back.</h1>
+          <p className="mt-3 text-sm text-muted-foreground">Apnar account-e login korun.</p>
+        </div>
+      <Card className="w-full border shadow-[var(--shadow-panel)]">
+        <CardHeader className="sr-only">
+          <CardTitle>TEAM SHAHIN sign in</CardTitle>
+          <CardDescription>Apnar account-e login korun.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login">
@@ -116,7 +128,8 @@ function AuthPage() {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {tab === "login" ? "Login" : "Create account"}
+                    {loading ? "Please wait…" : tab === "login" ? "Login" : "Create account"}
+                    <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </form>
               </TabsContent>
@@ -130,6 +143,8 @@ function AuthPage() {
           </Button>
         </CardContent>
       </Card>
+      <p className="mt-6 text-center text-xs text-muted-foreground">TEAM SHAHIN · Private workspace</p>
+      </div>
     </main>
   );
 }

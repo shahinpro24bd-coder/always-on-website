@@ -79,14 +79,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LeadVault — Facebook Lead Management" },
-      { name: "description", content: "Save Facebook lead links with auto serial numbers and date filtering." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "LeadVault — Facebook Lead Management" },
-      { property: "og:description", content: "Facebook leads, organised and date-filtered." },
+      { title: "TEAM SHAHIN — Lead Workspace" },
+      { name: "description", content: "TEAM SHAHIN private lead management workspace." },
+      { name: "author", content: "TEAM SHAHIN" },
+      { property: "og:title", content: "TEAM SHAHIN — Lead Workspace" },
+      { property: "og:description", content: "Your TEAM SHAHIN lead collection." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
