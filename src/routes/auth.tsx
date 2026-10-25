@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TeamBrand } from "@/components/team-brand";
-import { ArrowRight, LockKeyhole } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -33,6 +33,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -65,7 +66,7 @@ function AuthPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Account toiri hoyeche! Ekhon login korun.");
+    toast.success("Account toiri hoyeche! Email-er confirmation link check korun.");
   };
 
   const google = async () => {
@@ -81,16 +82,15 @@ function AuthPage() {
   };
 
   return (
-    <main className="auth-page min-h-screen px-5 py-8">
-      <header className="mx-auto max-w-7xl"><TeamBrand /></header>
-      <div className="mx-auto flex min-h-[75vh] max-w-md flex-col justify-center py-12">
-        <div className="mb-8">
-          <div className="mb-5 flex size-12 items-center justify-center rounded-md border bg-card text-primary"><LockKeyhole className="size-6" /></div>
-          <p className="mb-2 text-xs font-semibold uppercase text-primary">TEAM SHAHIN / Workspace</p>
-          <h1 className="text-3xl font-semibold">Welcome back.</h1>
-          <p className="mt-3 text-sm text-muted-foreground">Apnar account-e login korun.</p>
+    <main className="auth-page flex min-h-screen flex-col px-5 py-8">
+      <header className="mx-auto w-full max-w-7xl"><TeamBrand compact /></header>
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-12">
+      <Card className="w-full border bg-card p-2 shadow-[var(--shadow-panel)] sm:p-5">
+        <div className="px-6 pb-6 pt-5">
+          <p className="mb-3 text-xs font-semibold uppercase text-primary">Private workspace</p>
+          <h1 className="text-3xl font-semibold">Welcome back</h1>
+          <p className="mt-2 text-sm text-muted-foreground">TEAM SHAHIN-e sign in korun.</p>
         </div>
-      <Card className="w-full border shadow-[var(--shadow-panel)]">
         <CardHeader className="sr-only">
           <CardTitle>TEAM SHAHIN sign in</CardTitle>
           <CardDescription>Apnar account-e login korun.</CardDescription>
@@ -109,6 +109,7 @@ function AuthPage() {
                     <Input
                       id={`${tab}-email`}
                       type="email"
+                      autoComplete="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -117,15 +118,17 @@ function AuthPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor={`${tab}-password`}>Password</Label>
-                    <Input
+                    <div className="relative"><Input
                       id={`${tab}-password`}
-                      type="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete={tab === "login" ? "current-password" : "new-password"}
+                      className="pr-12"
                       required
                       minLength={6}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                    />
+                    /><Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 size-8 -translate-y-1/2" aria-label={showPassword ? "Hide password" : "Show password"} title={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</Button></div>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Please wait…" : tab === "login" ? "Login" : "Create account"}

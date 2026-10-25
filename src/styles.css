@@ -175,4 +175,4 @@
 
 .workspace-header { background: var(--card); border-bottom: 1px solid var(--border); }
 .workspace-panel { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
-.auth-page { background: var(--background); }
+.auth-page { background: var(--background); border-top: 4px solid var(--primary); }
