@@ -1,0 +1,7 @@
+[
+  {"capability":"code","source":"lead-connect-hub-main.zip","outcome":"migrate","status":"done","next_action":"none"},
+  {"capability":"schema","source":"supabase/migrations","outcome":"migrate","status":"done","next_action":"none"},
+  {"capability":"records (leads)","source":"old Lovable Cloud project","outcome":"migrate","status":"pending","next_action":"user exports leads CSV"},
+  {"capability":"auth users","source":"old Lovable Cloud project","outcome":"migrate","status":"pending","next_action":"user exports user list (email + id)"},
+  {"capability":"auth (email + Google)","source":"code","outcome":"migrate","status":"enabled","next_action":"verify signed-in flow after first real account"}
+]
