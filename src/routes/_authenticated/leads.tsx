@@ -16,8 +16,12 @@ import {
   RotateCcw,
   Search,
   Globe,
+  LayoutDashboard,
+  ShieldCheck,
+  Users,
 
 } from "lucide-react";
+import { TeamBrand } from "@/components/team-brand";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,13 +59,15 @@ type Collected = {
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
     meta: [
-      { title: "Leads Dashboard — LeadVault" },
+      { title: "Lead Workspace — TEAM SHAHIN" },
       {
         name: "description",
-        content: "Save Facebook lead links with auto serial numbers, archive and filter by date.",
+        content: "Manage, verify, search and archive your leads in the TEAM SHAHIN workspace.",
       },
-      { property: "og:title", content: "Leads Dashboard — LeadVault" },
-      { property: "og:description", content: "Your Facebook leads, organised and date-filtered." },
+      { property: "og:title", content: "Lead Workspace — TEAM SHAHIN" },
+      { property: "og:description", content: "Your TEAM SHAHIN lead collection, organised and verified." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LeadsPage,
@@ -376,27 +382,36 @@ function LeadsPage() {
 
   return (
     <main className="min-h-screen">
-      <header
-        className="px-6 py-10 text-primary-foreground"
-        style={{ backgroundImage: "var(--gradient-hero)" }}
-      >
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">LeadVault</h1>
-            <p className="text-sm opacity-90">
-              Facebook lead links — auto serial number, archive & date filter
-            </p>
-          </div>
-          <Button variant="secondary" size="sm" onClick={signOut}>
+      <header className="workspace-header px-5 py-5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <TeamBrand />
+          <Button variant="ghost" size="sm" onClick={signOut}>
             <LogOut className="mr-2 size-4" /> Logout
           </Button>
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-        <Card className="shadow-[var(--shadow-panel)]">
+      <div className="mx-auto max-w-7xl space-y-6 px-5 py-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground"><LayoutDashboard className="size-3.5" /> WORKSPACE / LEADS</p>
+            <h1 className="text-3xl font-semibold">Lead workspace</h1>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => { refetchLeads(); qc.invalidateQueries({ queryKey: ["collected-leads"] }); }}>
+            <RotateCcw className="mr-2 size-4" /> Refresh
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-4 border-y py-5 sm:grid-cols-4">
+          {[
+            { name: "Active leads", count: leads.filter(l => !l.archived && !l.deleted_at).length, icon: Users },
+            { name: "Verified", count: leads.filter(l => l.verified && !l.deleted_at).length, icon: ShieldCheck },
+            { name: "Archived", count: leads.filter(l => l.archived && !l.deleted_at).length, icon: Archive },
+            { name: "Collected links", count: collected.length, icon: Globe },
+          ].map(item => <div key={item.name} className="px-1"><div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground"><item.icon className="size-4" />{item.name}</div><div className="font-display text-2xl font-semibold tabular-nums">{isLoading || collectedLoading ? "—" : item.count.toLocaleString()}</div></div>)}
+        </div>
+        <Card className="workspace-panel">
           <CardHeader>
-            <CardTitle className="text-lg">Notun lead add korun</CardTitle>
+            <CardTitle className="text-lg">Add a lead</CardTitle>
           </CardHeader>
           <CardContent>
             <form
@@ -472,7 +487,7 @@ function LeadsPage() {
           </Card>
         )}
 
-        <Card>
+        <Card className="workspace-panel border-t pt-6">
           <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-3">
               <CardTitle className="text-lg">
@@ -528,10 +543,10 @@ function LeadsPage() {
                   <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="search"
-                    className="w-48 pl-8"
+                  className="w-full min-w-40 sm:w-48 pl-8"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="429"
+                    placeholder="Search leads…"
                   />
                 </div>
               </div>
@@ -753,9 +768,9 @@ function LeadsPage() {
                           aria-label={lead.verified ? "Mark as not verified" : "Mark as verified"}
                         >
                           {lead.verified ? (
-                            <Check className="size-4 text-blue-500" />
+                            <Check className="size-4 text-primary" />
                           ) : (
-                            <X className="size-4 text-red-500" />
+                            <X className="size-4 text-muted-foreground" />
                           )}
                         </Button>
                       </TableCell>
